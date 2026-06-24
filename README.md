@@ -9,7 +9,7 @@ Project was built as a practice project to learn Go and Svelte.
 - Shorten URLs 
 - Check number of redirects via short URL code
 
-![Application Preview](assets/preview.png)
+![Application Preview](assets/preview.jpeg)
 
 ## Stack
 
