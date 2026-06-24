@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+    <head>
+        <title>URL Shortener</title>
+    </head>
+    <body>
+        <h1>Мій URL Shortener на Go</h1>
+        <input
+            type="text"
+            id="longUrl"
+            placeholder="Вставте довге посилання сюди..."
+            style="width: 300px"
+        />
+        <button onclick="shorten()">Скоротити</button>
+        <p id="result"></p>
+
+        <input
+            type="text"
+            id="statsCode"
+            placeholder="Вставте код для статистики"
+        />
+        <button onclick="showStats()">Показати статистику</button>
+        <p id="stats"></p>
+
+        <script>
+            function shorten() {
+                let url = JSON.stringify({
+                    url: document.getElementById("longUrl").value,
+                });
+                fetch("/shorten", {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    method: "POST",
+                    body: url,
+                })
+                    .then((res) => {
+                        if (!res.ok) {
+                            return res.json().then((data) => {
+                                throw new Error(data.error);
+                            });
+                        }
+                        return res.json();
+                    })
+                    .then((data) => {
+                        document.getElementById("result").innerHTML =
+                            'Коротке посилання: <a href="' +
+                            data.short_url +
+                            '" target="_blank">' +
+                            data.short_url +
+                            "</a>";
+                    })
+                    .catch((err) => {
+                        document.getElementById("result").style.color = "red";
+                        document.getElementById("result").innerHTML =
+                            err.message;
+                    });
+            }
+
+            function showStats() {
+                let code = document.getElementById("statsCode").value;
+                fetch("/stats/" + code, {
+                    method: "GET",
+                })
+                    .then((res) => {
+                        if (!res.ok) {
+                            return res.json().then((data) => {
+                                throw new Error(data.error);
+                            });
+                        }
+                        return res.json();
+                    })
+                    .then((data) => {
+                        document.getElementById("stats").innerHTML =
+                            "Кількість переходів: " +
+                            data.count +
+                            '<br><a href="' +
+                            data.original_url +
+                            '" target="_blank">Оригінальна URL: ' +
+                            data.original_url +
+                            "</a>";
+                    })
+                    .catch((err) => {
+                        document.getElementById("stats").style.color = "red";
+                        document.getElementById("stats").innerHTML =
+                            err.message;
+                    });
+            }
+        </script>
+    </body>
+</html>
