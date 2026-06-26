@@ -3,12 +3,12 @@ package main
 import (
 	"database/sql"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 func initDB() *sql.DB {
 	var err error
-	database, err := sql.Open("sqlite3", "file:shortener.db?_journal_mode=WAL")
+	database, err := sql.Open("sqlite", "file:shortener.db?_journal_mode=WAL")
 	if err != nil {
 		panic(err)
 	}
