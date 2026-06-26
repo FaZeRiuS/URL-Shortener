@@ -3,11 +3,13 @@ package main
 import (
 	"database/sql"
 	"html/template"
+	"sync"
 )
 
 type App struct {
-	db   *sql.DB
-	tmpl *template.Template
+	db    *sql.DB
+	tmpl  *template.Template
+	cache sync.Map
 }
 
 type ShortenRequest struct {

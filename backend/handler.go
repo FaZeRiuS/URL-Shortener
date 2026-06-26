@@ -57,6 +57,8 @@ func (a *App) shortenerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	a.cache.Store(code, body)
+
 	w.Header().Set("Location", "http://localhost:8080/"+code)
 	resp := ShortenResponse{ShortenedURL: "http://localhost:8080/" + code}
 	writeJSON(w, http.StatusCreated, resp)
@@ -79,16 +81,22 @@ func (a *App) redirectHandler(w http.ResponseWriter, r *http.Request) {
 
 	var originalUrl string
 
-	dbErr := a.db.QueryRow(`SELECT original_url FROM urls WHERE code = ?`, code).Scan(&originalUrl)
-	if dbErr == sql.ErrNoRows {
-		http.Error(w, "URL not found", http.StatusNotFound)
-		return
-	} else if dbErr != nil {
-		fmt.Println(dbErr)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
+	if value, ok := a.cache.Load(code); ok {
+		originalUrl = value.(string)
+	} else {
+		dbErr := a.db.QueryRow(`SELECT original_url FROM urls WHERE code = ?`, code).Scan(&originalUrl)
+		if dbErr == sql.ErrNoRows {
+			http.Error(w, "URL not found", http.StatusNotFound)
+			return
+		} else if dbErr != nil {
+			fmt.Println(dbErr)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		a.cache.Store(code, originalUrl)
 	}
-	_, dbErr = a.db.Exec(`UPDATE urls SET clicks = clicks + 1 WHERE code = ?`, code)
+
+	_, dbErr := a.db.Exec(`UPDATE urls SET clicks = clicks + 1 WHERE code = ?`, code)
 	if dbErr != nil {
 		fmt.Println(dbErr)
 	}
