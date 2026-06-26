@@ -3,12 +3,12 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 
-	"github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 func writeJSON(w http.ResponseWriter, status int, data interface{}) {
@@ -48,14 +48,15 @@ func (a *App) shortenerHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		var sqliteErr sqlite3.Error
-		if errors.As(dbErr, &sqliteErr) && sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique {
+		if strings.Contains(dbErr.Error(), "UNIQUE") {
 			continue
 		}
 
 		writeJSON(w, http.StatusInternalServerError, ErrorResponse{Error: "Failed to save to database"})
 		return
 	}
+
+	a.cache.Store(code, body)
 
 	w.Header().Set("Location", "http://localhost:8080/"+code)
 	resp := ShortenResponse{ShortenedURL: "http://localhost:8080/" + code}
@@ -79,19 +80,22 @@ func (a *App) redirectHandler(w http.ResponseWriter, r *http.Request) {
 
 	var originalUrl string
 
-	dbErr := a.db.QueryRow(`SELECT original_url FROM urls WHERE code = ?`, code).Scan(&originalUrl)
-	if dbErr == sql.ErrNoRows {
-		http.Error(w, "URL not found", http.StatusNotFound)
-		return
-	} else if dbErr != nil {
-		fmt.Println(dbErr)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
+	if value, ok := a.cache.Load(code); ok {
+		originalUrl = value.(string)
+	} else {
+		dbErr := a.db.QueryRow(`SELECT original_url FROM urls WHERE code = ?`, code).Scan(&originalUrl)
+		if dbErr == sql.ErrNoRows {
+			http.Error(w, "URL not found", http.StatusNotFound)
+			return
+		} else if dbErr != nil {
+			fmt.Println(dbErr)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		a.cache.Store(code, originalUrl)
 	}
-	_, dbErr = a.db.Exec(`UPDATE urls SET clicks = clicks + 1 WHERE code = ?`, code)
-	if dbErr != nil {
-		fmt.Println(dbErr)
-	}
+
+	a.clicksChan <- code
 
 	http.Redirect(w, r, originalUrl, http.StatusSeeOther)
 }

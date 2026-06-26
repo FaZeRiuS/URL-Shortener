@@ -18,8 +18,9 @@ func main() {
 	}
 
 	app := &App{
-		db:   database,
-		tmpl: parsedTemplates,
+		db:         database,
+		tmpl:       parsedTemplates,
+		clicksChan: make(chan string, 1000),
 	}
 
 	http.HandleFunc("/shorten", app.shortenerHandler)
@@ -27,6 +28,8 @@ func main() {
 	http.HandleFunc("/", app.redirectHandler)
 
 	http.HandleFunc("/stats/", app.statsHandler)
+
+	go app.flushClicksWorker()
 
 	fmt.Println("Сервер запускається на порту :8080...")
 
