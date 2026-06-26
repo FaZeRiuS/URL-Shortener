@@ -7,9 +7,10 @@ import (
 )
 
 type App struct {
-	db    *sql.DB
-	tmpl  *template.Template
-	cache sync.Map
+	db         *sql.DB
+	tmpl       *template.Template
+	cache      sync.Map
+	clicksChan chan string
 }
 
 type ShortenRequest struct {

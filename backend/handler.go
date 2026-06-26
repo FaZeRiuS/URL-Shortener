@@ -3,12 +3,12 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 
-	"github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 func writeJSON(w http.ResponseWriter, status int, data interface{}) {
@@ -48,8 +48,7 @@ func (a *App) shortenerHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		var sqliteErr sqlite3.Error
-		if errors.As(dbErr, &sqliteErr) && sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique {
+		if strings.Contains(dbErr.Error(), "UNIQUE") {
 			continue
 		}
 
@@ -96,10 +95,7 @@ func (a *App) redirectHandler(w http.ResponseWriter, r *http.Request) {
 		a.cache.Store(code, originalUrl)
 	}
 
-	_, dbErr := a.db.Exec(`UPDATE urls SET clicks = clicks + 1 WHERE code = ?`, code)
-	if dbErr != nil {
-		fmt.Println(dbErr)
-	}
+	a.clicksChan <- code
 
 	http.Redirect(w, r, originalUrl, http.StatusSeeOther)
 }

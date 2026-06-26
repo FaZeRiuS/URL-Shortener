@@ -2,10 +2,7 @@ module url-shortener
 
 go 1.26.3
 
-require (
-	github.com/mattn/go-sqlite3 v1.14.47
-	modernc.org/sqlite v1.53.0
-)
+require modernc.org/sqlite v1.53.0
 
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
