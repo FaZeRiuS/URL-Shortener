@@ -7,10 +7,10 @@ export default defineConfig({
   server: {
     proxy: {
       "/shorten": {
-        target: "http://localhost:8080",
+        target: "http://backend:8080",
       },
       "/stats": {
-        target: "http://localhost:8080",
+        target: "http://backend:8080",
       },
     },
   },

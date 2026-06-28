@@ -10,7 +10,7 @@ import (
 
 func initDB() *sql.DB {
 	var err error
-	database, err := sql.Open("sqlite", "file:shortener.db?_journal_mode=WAL")
+	database, err := sql.Open("sqlite", "file:data/shortener.db?_journal_mode=WAL")
 	if err != nil {
 		panic(err)
 	}

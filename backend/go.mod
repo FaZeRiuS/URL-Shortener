@@ -1,6 +1,6 @@
 module url-shortener
 
-go 1.26.3
+go 1.26
 
 require modernc.org/sqlite v1.53.0
 
