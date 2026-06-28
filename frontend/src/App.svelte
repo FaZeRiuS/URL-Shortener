@@ -1,6 +1,6 @@
 <script lang="ts">
-    import Shorten from "./components/shorten.svelte";
-    import Stats from "./components/stats.svelte";
+    import Shorten from "./components/Shorten.svelte";
+    import Stats from "./components/Stats.svelte";
 </script>
 
 <main>
