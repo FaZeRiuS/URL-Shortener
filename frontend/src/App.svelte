@@ -1,6 +1,5 @@
 <script lang="ts">
     import type {
-        ShortenRequest,
         ShortenResponse,
         StatsResponse,
         ErrorResponse,
@@ -120,7 +119,7 @@
             bind:value={statsCode}
         />
         <button onclick={getStats}>Отримати статистику</button>
-        {#if statsCount}
+        {#if statsOriginalUrl}
             <p id="stats">Кількість переходів: {statsCount}</p>
             <br />
             <p id="originalUrl">
