@@ -1,9 +1,16 @@
 <script lang="ts">
+    import type {
+        ShortenRequest,
+        ShortenResponse,
+        StatsResponse,
+        ErrorResponse,
+    } from "./types";
+
     let longUrl = $state("");
     let shortUrl = $state("");
 
     let statsCode = $state("");
-    let statsCount = $state("");
+    let statsCount = $state(0);
     let statsOriginalUrl = $state("");
 
     let shortenErrorMessage = $state("");
@@ -34,13 +41,15 @@
             .then((res) => {
                 if (!res.ok) {
                     return res.json().then((data) => {
-                        throw new Error(data.error);
+                        const errorData = data as ErrorResponse;
+                        throw new Error(errorData.error);
                     });
                 }
                 return res.json();
             })
             .then((data) => {
-                shortUrl = data.short_url;
+                const shortenResponse = data as ShortenResponse;
+                shortUrl = shortenResponse.short_url;
             })
             .catch((err) => {
                 shortenErrorMessage = err.message;
@@ -48,7 +57,7 @@
     }
 
     function getStats() {
-        statsCount = "";
+        statsCount = 0;
         statsErrorMessage = "";
         statsOriginalUrl = "";
 
@@ -61,14 +70,16 @@
             .then((res) => {
                 if (!res.ok) {
                     return res.json().then((data) => {
-                        throw new Error(data.error);
+                        const errorData = data as ErrorResponse;
+                        throw new Error(errorData.error);
                     });
                 }
                 return res.json();
             })
             .then((data) => {
-                statsCount = data.count;
-                statsOriginalUrl = data.original_url;
+                const statsResponse = data as StatsResponse;
+                statsCount = statsResponse.count;
+                statsOriginalUrl = statsResponse.original_url;
             })
             .catch((err) => {
                 statsErrorMessage = err.message;
